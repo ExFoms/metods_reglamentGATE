@@ -15,9 +15,10 @@ public class reglamentGATE
                 ref list, ref link_connections, "server-r", "srz3_00"
                 , string.Format(
                     "select id pid, dr, pid doubler, q smocode, lpu mcode, ss_doctor doctor1, ss_feldsher doctor2, dedit, RSTOP, tmpForSRZ.dbo.GATE_CheckActivePID_date(ID,'{0}') active " +
-                    "FROM  people where DEDIT >= '{1}'",
+                    "FROM  people where DEDIT > '{1}'",
                     DateTime.Now.ToString("yyyy-MM-dd"),
-                    clsLibrary.execQuery_PGR_getString(ref link_connections, "postgres", "select to_char(coalesce(max(dedit)- interval '1 hour','1900-01-01')::date,'YYYY-MM-DD') from identy.pids;")
+                    //clsLibrary.execQuery_PGR_getString(ref link_connections, "postgres", "select to_char(coalesce(max(dedit)- interval '1 second','1900-01-01'),'YYYY-MM-DD HH:MI:SS') from identy.pids;")
+                    clsLibrary.execQuery_PGR_getString(ref link_connections, "postgres", "select to_char(coalesce(max(dedit),'1900-01-01'),'YYYY-MM-DD HH:MI:SS') from identy.pids;")
                     ),
                 wait_interval
                 ))
@@ -100,7 +101,7 @@ public class reglamentGATE
     }
 
     // Не хроший вариант сборкм XML простыми текстовыми строками
-    public static bool send_response_from_eir(ref List<clsConnections> link_connections, int wait_interval, ref string comment)
+    public static bool send_response_from_eir(ref List<clsConnections> link_connections, string[] folders, int wait_interval, ref string comment)
     {
         bool result = false;
         comment = string.Empty;
@@ -144,13 +145,16 @@ public class reglamentGATE
                             content.Add("</ZL>");
                         }
                         content.Add("</ZLDN>");
-                        result = clsLibrary.createFileTXT_FromList(content, Path.Combine(@"W:\", "test_" + response[2]));
+                        result = clsLibrary.createFileTXT_FromList(content, Path.Combine(folders[1], response[2]));
 
-                        clsLibrary.execQuery_PGR_function_bool(ref link_connections, "postgres"
+                        clsLibrary.execQuery_PGR(ref link_connections, "postgres"
                            , String.Format("update buf_eir.response set state = 100, date_send = '{0}' where id = '{1}';", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), response[0])
                            , 120000);
+                        clsLibrary.execQuery_PGR(ref link_connections, "postgres"
+                           , String.Format("delete from buf_eir.response_content where id_response = '{0}';", response[0])
+                           , 120000);
                     }
-                        
+
                 }
             }            
         }
