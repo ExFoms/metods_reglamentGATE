@@ -99,8 +99,7 @@ public class reglamentGATE
         }
         return result;
     }
-
-    // Не хроший вариант сборкм XML простыми текстовыми строками
+        // Не хроший вариант сборкм XML простыми текстовыми строками
     public static bool send_response_from_eir(ref List<clsConnections> link_connections, string[] folders, int wait_interval, ref string comment)
     {
         bool result = false;
